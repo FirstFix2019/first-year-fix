@@ -1,270 +1,492 @@
-// Telegram Config (የአንተ Bot Token እና Chat ID ተካቷል)
-const TELEGRAM_BOT_TOKEN = "8662937348:AAFNbC3QAydzIFiJ4jmUcNhKKx9K773-Q6M";
-const TELEGRAM_CHAT_ID = "7933278211";
-
-// የሚፈለገው Secret Passcode (አንተ በፈለግከው ጊዜ መቀየር ትችላለህ)
-const VALID_PASSCODE = "GEO2026"; 
-
-let studentData = { name: "", phone: "" };
-let startTime, endTime;
-
-const questions = [
-    {
-        id: 1,
-        question: "Nomadic pastoralists living in arid lowlands adjust their seasonal migration routes, wear lightweight clothing, and build portable dome-shaped dwellings in response to extreme heat. This behavior represents:",
-        options: [
-            "Environmental modification",
-            "Human adaptation to environmental challenges",
-            "Permanent industrial urbanization",
-            "Soil degradation control"
-        ],
-        answer: 1 
-    },
-    {
-        id: 2,
-        question: "A designated telecommunication network service area centered around a major metropolitan hub, defined by the functional linkages binding outlying towns to the center, represents which type of region?",
-        options: [
-            "Formal (Uniform) Region",
-            "Functional (Nodal) Region",
-            "Astronomical Region",
-            "Topographic Region"
-        ],
-        answer: 1
-    },
-    {
-        id: 3,
-        question: "Which shape classification describes a country that possesses one narrow, elongated portion extending outward from the main body of the state (such as Myanmar or Eritrea)?",
-        options: [
-            "Compact",
-            "Fragmented",
-            "Protruded",
-            "Perforated"
-        ],
-        answer: 2
-    },
-    {
-        id: 4,
-        question: "A study focuses exclusively on the volumetric water discharge and catchment area of the Blue Nile River without examining surrounding human settlements. This research represents:",
-        options: [
-            "Regional Geography",
-            "Systematic (Topical) Geography",
-            "Cultural Anthropology",
-            "Geopolitical Strategy"
-        ],
-        answer: 1
-    },
-    {
-        id: 5,
-        question: "What term refers to the proper name given to a specific geographic place on the Earth's surface?",
-        options: [
-            "Site",
-            "Situation",
-            "Toponym",
-            "Isobar"
-        ],
-        answer: 2
-    }
-];
-
-let currentQuestionIndex = 0;
-let userAnswers = {};
-let totalQuestions = questions.length;
-let timeInSeconds = 30 * 60; 
-let timerInterval;
-
-// DOM Elements
-const lobbyContainer = document.getElementById('lobby-container');
-const examContainer = document.getElementById('exam-container');
-const loginError = document.getElementById('login-error');
-
-const questionNumberText = document.getElementById('question-number');
-const questionText = document.getElementById('question-text');
-const optionsContainer = document.getElementById('options-container');
-const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
-const submitBtn = document.getElementById('submit-btn');
-const questionGrid = document.getElementById('question-grid');
-const navStatus = document.getElementById('nav-status');
-const progressBar = document.getElementById('progress-bar');
-const timerText = document.getElementById('timer-text');
-
-// Modal Elements
-const resultModal = document.getElementById('result-modal');
-const scorePercentage = document.getElementById('score-percentage');
-const scoreDetails = document.getElementById('score-details');
-const telegramStatus = document.getElementById('telegram-status');
-
-// Login & Passcode Validation
-function startExam(e) {
-    e.preventDefault();
-    const name = document.getElementById('student-name').value;
-    const phone = document.getElementById('student-phone').value;
-    const passcode = document.getElementById('exam-passcode').value;
-
-    if (passcode !== VALID_PASSCODE) {
-        loginError.style.display = 'block';
-        return;
-    }
-
-    studentData.name = name;
-    studentData.phone = phone;
-    startTime = new Date();
-
-    lobbyContainer.style.display = 'none';
-    examContainer.style.display = 'flex';
-
-    initQuiz();
+:root {
+    --bg-main: #f8fafc;
+    --card-bg: #ffffff;
+    --primary: #f59e0b;
+    --primary-hover: #d97706;
+    --primary-light: #fef3c7;
+    --dark-nav: #0f172a;
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --accent-green: #10b981;
+    --accent-green-bg: #d1fae5;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-md: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+    --radius-lg: 16px;
+    --radius-md: 10px;
 }
 
-function initQuiz() {
-    createNavigatorGrid();
-    loadQuestion(currentQuestionIndex);
-    updateNavigator();
-    startTimer();
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-function startTimer() {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        timeInSeconds--;
-        let minutes = Math.floor(timeInSeconds / 60);
-        let seconds = timeInSeconds % 60;
-        timerText.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-        if (timeInSeconds <= 0) {
-            clearInterval(timerInterval);
-            submitExam();
-        }
-    }, 1000);
+body {
+    background-color: var(--bg-main);
+    color: var(--text-dark);
+    min-height: 100vh;
 }
 
-function loadQuestion(index) {
-    let q = questions[index];
-    questionNumberText.textContent = `QUESTION ${index + 1} OF ${totalQuestions}`;
-    questionText.textContent = q.question;
-    
-    let progress = ((index + 1) / totalQuestions) * 100;
-    progressBar.style.width = `${progress}%`;
-
-    optionsContainer.innerHTML = "";
-    q.options.forEach((opt, i) => {
-        let optionLetter = String.fromCharCode(65 + i);
-        let isSelected = userAnswers[index] === i ? 'selected' : '';
-        
-        let card = document.createElement('div');
-        card.className = `option-card ${isSelected}`;
-        card.innerHTML = `
-            <div class="option-badge">${optionLetter}</div>
-            <div class="option-label">${opt}</div>
-        `;
-        
-        card.addEventListener('click', () => selectOption(index, i));
-        optionsContainer.appendChild(card);
-    });
-
-    prevBtn.style.visibility = index === 0 ? "hidden" : "visible";
-    nextBtn.textContent = index === totalQuestions - 1 ? "Finish Exam →" : "Next Question →";
-
-    updateNavigatorStyles();
+/* Header */
+.top-header {
+    background-color: var(--dark-nav);
+    color: #fff;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--primary);
 }
 
-function selectOption(qIndex, optIndex) {
-    userAnswers[qIndex] = optIndex;
-    loadQuestion(qIndex);
-    updateNavigator();
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-function createNavigatorGrid() {
-    questionGrid.innerHTML = "";
-    for (let i = 0; i < totalQuestions; i++) {
-        let item = document.createElement('div');
-        item.className = 'nav-item';
-        item.textContent = i + 1;
-        item.addEventListener('click', () => {
-            currentQuestionIndex = i;
-            loadQuestion(currentQuestionIndex);
-        });
-        questionGrid.appendChild(item);
-    }
+.brand-logo {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--primary);
 }
 
-function updateNavigator() {
-    let answeredCount = Object.keys(userAnswers).length;
-    navStatus.textContent = `${answeredCount} of ${totalQuestions} Answered`;
-    updateNavigatorStyles();
+.brand-text h2 {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
 }
 
-function updateNavigatorStyles() {
-    const items = document.querySelectorAll('.nav-item');
-    items.forEach((item, i) => {
-        item.classList.remove('answered', 'current');
-        if (userAnswers[i] !== undefined) item.classList.add('answered');
-        if (i === currentQuestionIndex) item.classList.add('current');
-    });
+.brand-text p {
+    font-size: 11px;
+    color: #94a3b8;
 }
 
-function submitExam() {
-    clearInterval(timerInterval);
-    endTime = new Date();
-    
-    let score = 0;
-    questions.forEach((q, index) => {
-        if (userAnswers[index] === q.answer) score++;
-    });
-
-    let percentage = Math.round((score / totalQuestions) * 100);
-    let timeTakenMin = Math.floor((30 * 60 - timeInSeconds) / 60);
-    let timeTakenSec = (30 * 60 - timeInSeconds) % 60;
-    let timeString = `${timeTakenMin}m ${timeTakenSec}s`;
-
-    scorePercentage.textContent = `${percentage}%`;
-    scoreDetails.textContent = `You scored ${score} out of ${totalQuestions}`;
-    resultModal.classList.add('active');
-
-    // Send Result to Telegram Bot
-    sendResultToTelegram(studentData.name, studentData.phone, score, totalQuestions, percentage, timeString);
+.header-status {
+    font-size: 12px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px;
+    border-radius: 20px;
 }
 
-function sendResultToTelegram(name, phone, score, total, percent, timeSpent) {
-    telegramStatus.textContent = "Sending result to instructor...";
-    
-    const message = `🎯 *NEW EXAM SUBMISSION*%0A%0A👤 *Name:* ${name}%0A📞 *Phone:* ${phone}%0A📚 *Subject:* Geography Ch.1%0A📊 *Score:* ${score}/${total} (${percent}%)%0A⏱️ *Time Spent:* ${timeSpent}`;
-
-    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${message}&parse_mode=Markdown`;
-
-    fetch(url)
-        .then(response => {
-            if (response.ok) {
-                telegramStatus.textContent = "✓ Result successfully sent to instructor!";
-            } else {
-                telegramStatus.textContent = "✓ Submitted locally.";
-            }
-        })
-        .catch(err => {
-            telegramStatus.textContent = "✓ Submitted locally.";
-        });
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent-green);
 }
 
-// Event Listeners
-nextBtn.addEventListener('click', () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-        currentQuestionIndex++;
-        loadQuestion(currentQuestionIndex);
-    } else {
-        submitExam();
-    }
-});
+/* Student Lobby / Login Form Styling */
+.lobby-card {
+    background: #ffffff;
+    max-width: 440px;
+    margin: 40px auto;
+    padding: 32px 28px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+    border: 1px solid #e2e8f0;
+}
 
-prevBtn.addEventListener('click', () => {
-    if (currentQuestionIndex > 0) {
-        currentQuestionIndex--;
-        loadQuestion(currentQuestionIndex);
-    }
-});
+.lobby-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
 
-submitBtn.addEventListener('click', () => {
-    if (confirm("Are you sure you want to submit your exam?")) {
-        submitExam();
-    }
-});
+.lobby-header h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.lobby-header p {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 6px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.form-group input {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+.btn-block {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    margin-top: 10px;
+}
+
+.error-msg {
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+/* Main Layout */
+.main-container {
+    max-width: 1000px;
+    margin: 16px auto;
+    padding: 0 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Sidebar / Navigator Card */
+.sidebar-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.sidebar-header h3 {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.counter-badge {
+    font-size: 11px;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* Horizontal Scroll Grid li-l-hawatif */
+.question-grid {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.question-grid::-webkit-scrollbar {
+    height: 5px;
+}
+
+.question-grid::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.nav-item {
+    min-width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    background: #fff;
+    color: var(--text-dark);
+    transition: all 0.2s ease;
+}
+
+.nav-item.answered {
+    background-color: var(--accent-green-bg);
+    border-color: var(--accent-green);
+    color: #065f46;
+}
+
+.nav-item.current {
+    border-color: var(--primary);
+    background-color: var(--primary-light);
+    box-shadow: 0 0 0 2px var(--primary);
+}
+
+.grid-legend {
+    display: flex;
+    justify-content: space-around;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.dot.answered { background-color: var(--accent-green); }
+.dot.current { background-color: var(--primary); }
+.dot.unvisited { background-color: var(--border-color); }
+
+/* Question Panel */
+.question-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.exam-tag {
+    background: var(--primary-light);
+    color: #92400e;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+}
+
+.timer-badge {
+    background: var(--dark-nav);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.progress-section {
+    margin-bottom: 20px;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 6px;
+    background-color: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    width: 20%;
+    transition: width 0.3s ease;
+}
+
+.question-info {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.question-text {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text-dark);
+    margin-bottom: 24px;
+}
+
+/* MCQ Options */
+.options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.option-card {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.option-card:hover {
+    border-color: var(--primary);
+}
+
+.option-card.selected {
+    border-color: var(--primary);
+    background-color: var(--primary-light);
+}
+
+.option-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: var(--text-dark);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.option-card.selected .option-badge {
+    background: var(--primary);
+    color: var(--dark-nav);
+}
+
+.option-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+}
+
+/* Buttons */
+.card-footer {
+    margin-top: auto;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn {
+    padding: 12px 18px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    flex: 1;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--dark-nav);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border-color);
+    color: var(--text-dark);
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    color: #fff;
+    flex: 100%;
+    margin-top: 6px;
+}
+
+/* Modal Popup */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.modal-card {
+    background: #fff;
+    padding: 32px 24px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+}
+
+.modal-icon { font-size: 36px; margin-bottom: 10px; }
+.modal-header h2 { font-size: 20px; font-weight: 800; }
+.modal-header p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+.score-ring {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), #fbbf24);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--dark-nav);
+}
+
+.score-text { font-size: 15px; font-weight: 600; margin-bottom: 24px; }
+.modal-actions { display: flex; gap: 10px; }
+
 
