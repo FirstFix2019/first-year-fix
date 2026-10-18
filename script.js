@@ -1,3 +1,13 @@
+// Telegram Config (የአንተ Bot Token እና Chat ID ተካቷል)
+const TELEGRAM_BOT_TOKEN = "8662937348:AAFNbC3QAydzIFiJ4jmUcNhKKx9K773-Q6M";
+const TELEGRAM_CHAT_ID = "7933278211";
+
+// የሚፈለገው Secret Passcode (አንተ በፈለግከው ጊዜ መቀየር ትችላለህ)
+const VALID_PASSCODE = "GEO2026"; 
+
+let studentData = { name: "", phone: "" };
+let startTime, endTime;
+
 const questions = [
     {
         id: 1,
@@ -63,6 +73,10 @@ let timeInSeconds = 30 * 60;
 let timerInterval;
 
 // DOM Elements
+const lobbyContainer = document.getElementById('lobby-container');
+const examContainer = document.getElementById('exam-container');
+const loginError = document.getElementById('login-error');
+
 const questionNumberText = document.getElementById('question-number');
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
@@ -78,6 +92,29 @@ const timerText = document.getElementById('timer-text');
 const resultModal = document.getElementById('result-modal');
 const scorePercentage = document.getElementById('score-percentage');
 const scoreDetails = document.getElementById('score-details');
+const telegramStatus = document.getElementById('telegram-status');
+
+// Login & Passcode Validation
+function startExam(e) {
+    e.preventDefault();
+    const name = document.getElementById('student-name').value;
+    const phone = document.getElementById('student-phone').value;
+    const passcode = document.getElementById('exam-passcode').value;
+
+    if (passcode !== VALID_PASSCODE) {
+        loginError.style.display = 'block';
+        return;
+    }
+
+    studentData.name = name;
+    studentData.phone = phone;
+    startTime = new Date();
+
+    lobbyContainer.style.display = 'none';
+    examContainer.style.display = 'flex';
+
+    initQuiz();
+}
 
 function initQuiz() {
     createNavigatorGrid();
@@ -168,27 +205,44 @@ function updateNavigatorStyles() {
 
 function submitExam() {
     clearInterval(timerInterval);
+    endTime = new Date();
+    
     let score = 0;
     questions.forEach((q, index) => {
         if (userAnswers[index] === q.answer) score++;
     });
 
     let percentage = Math.round((score / totalQuestions) * 100);
+    let timeTakenMin = Math.floor((30 * 60 - timeInSeconds) / 60);
+    let timeTakenSec = (30 * 60 - timeInSeconds) % 60;
+    let timeString = `${timeTakenMin}m ${timeTakenSec}s`;
+
     scorePercentage.textContent = `${percentage}%`;
     scoreDetails.textContent = `You scored ${score} out of ${totalQuestions}`;
     resultModal.classList.add('active');
+
+    // Send Result to Telegram Bot
+    sendResultToTelegram(studentData.name, studentData.phone, score, totalQuestions, percentage, timeString);
 }
 
-function closeModal() {
-    resultModal.classList.remove('active');
-}
+function sendResultToTelegram(name, phone, score, total, percent, timeSpent) {
+    telegramStatus.textContent = "Sending result to instructor...";
+    
+    const message = `🎯 *NEW EXAM SUBMISSION*%0A%0A👤 *Name:* ${name}%0A📞 *Phone:* ${phone}%0A📚 *Subject:* Geography Ch.1%0A📊 *Score:* ${score}/${total} (${percent}%)%0A⏱️ *Time Spent:* ${timeSpent}`;
 
-function restartQuiz() {
-    userAnswers = {};
-    currentQuestionIndex = 0;
-    timeInSeconds = 30 * 60;
-    closeModal();
-    initQuiz();
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${message}&parse_mode=Markdown`;
+
+    fetch(url)
+        .then(response => {
+            if (response.ok) {
+                telegramStatus.textContent = "✓ Result successfully sent to instructor!";
+            } else {
+                telegramStatus.textContent = "✓ Submitted locally.";
+            }
+        })
+        .catch(err => {
+            telegramStatus.textContent = "✓ Submitted locally.";
+        });
 }
 
 // Event Listeners
@@ -214,5 +268,3 @@ submitBtn.addEventListener('click', () => {
     }
 });
 
-// Run Application
-initQuiz();
