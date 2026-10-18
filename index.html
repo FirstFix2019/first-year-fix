@@ -18,21 +18,21 @@
             <img src="logo.png" alt="1st Year Fix Logo" class="brand-logo">
             <div class="brand-text">
                 <h2>1st YEAR FIX TUTORIAL</h2>
-                <p>Geography of Ethiopia and the Horn</p>
+                <p>Online Assessment Portal</p>
             </div>
         </div>
         <div class="header-status">
-            <span class="status-dot"></span> Online Exam
+            <span class="status-dot"></span> Portal Active
         </div>
     </header>
 
-    <!-- Student Lobby / Login Screen -->
-    <div id="lobby-container" class="lobby-card">
+    <!-- STEP 1: Student Details Screen (ስምና ስልክ ብቻ) -->
+    <div id="student-info-card" class="lobby-card">
         <div class="lobby-header">
             <h2>Welcome to Exam Portal</h2>
-            <p>Please enter your credentials and the Exam Passcode to start.</p>
+            <p>Please enter your details to proceed to assessment vaults.</p>
         </div>
-        <form id="login-form" onsubmit="startExam(event)">
+        <form id="student-form" onsubmit="goToVaultSelection(event)">
             <div class="form-group">
                 <label for="student-name">Full Name (ሙሉ ስም)</label>
                 <input type="text" id="student-name" placeholder="e.g. Abebe Kebede" required>
@@ -41,16 +41,60 @@
                 <label for="student-phone">Phone Number (ስልክ ቁጥር)</label>
                 <input type="tel" id="student-phone" placeholder="0912345678" required>
             </div>
-            <div class="form-group">
-                <label for="exam-passcode">Exam Passcode (የፈተና ኮድ)</label>
-                <input type="password" id="exam-passcode" placeholder="Enter code given by admin" required>
-            </div>
-            <p id="login-error" class="error-msg" style="display:none;">Incorrect Passcode! Please try again.</p>
-            <button type="submit" class="btn btn-primary btn-block">Enter Exam Hall →</button>
+            <button type="submit" class="btn btn-primary btn-block">Continue to Assessment Vaults →</button>
         </form>
     </div>
 
-    <!-- Main Exam Container -->
+    <!-- STEP 2: Vault/Subject Selection Screen (ቋት መምረጫ) -->
+    <div id="vault-selection-card" class="lobby-card" style="display: none;">
+        <div class="lobby-header">
+            <h2>Select Assessment Vault</h2>
+            <p>Choose the subject vault you want to take.</p>
+        </div>
+        <div class="vault-list">
+            <div class="vault-item" onclick="openPasscodeModal('Geography of Ethiopia and the Horn', 'GEO2026')">
+                <div class="vault-icon">🌍</div>
+                <div class="vault-details">
+                    <h3>Geography of Ethiopia and the Horn</h3>
+                    <p>15 Questions • 20 Minutes</p>
+                </div>
+                <span class="vault-badge">Active</span>
+            </div>
+            
+            <!-- ወደፊት ለሚጨመሩ ቋቶች ምሳሌ -->
+            <div class="vault-item disabled">
+                <div class="vault-icon">🧠</div>
+                <div class="vault-details">
+                    <h3>General Psychology</h3>
+                    <p>Coming Soon</p>
+                </div>
+                <span class="vault-badge locked">Locked</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: Passcode Modal (ቋቱን ሲመርጥ የሚመጣ) -->
+    <div class="modal-overlay" id="passcode-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-icon">🔐</div>
+                <h2 id="passcode-vault-title">Enter Vault Passcode</h2>
+                <p>Please enter the secret passcode provided by the admin.</p>
+            </div>
+            <form onsubmit="verifyPasscodeAndStart(event)">
+                <div class="form-group">
+                    <input type="password" id="vault-passcode-input" placeholder="Enter Vault Passcode" required>
+                </div>
+                <p id="passcode-error" class="error-msg" style="display:none;">Incorrect Passcode! Please try again.</p>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closePasscodeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Start Exam →</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- STEP 4: Main Exam Container -->
     <div class="main-container" id="exam-container" style="display: none;">
 
         <!-- Question Navigator Bar -->
@@ -72,7 +116,7 @@
         <!-- Question Panel -->
         <main class="question-card">
             <div class="card-header">
-                <div class="exam-tag">GEOGRAPHY • MCQ EXAM</div>
+                <div class="exam-tag" id="current-exam-tag">GEOGRAPHY • MCQ EXAM</div>
                 <div class="timer-badge" id="timer">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     <span id="timer-text">20:00</span>
@@ -127,6 +171,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
