@@ -2,10 +2,9 @@
 const TELEGRAM_BOT_TOKEN = "8662937348:AAFNbC3QAydzIFiJ4jmUcNhKKx9K773-Q6M";
 const TELEGRAM_CHAT_ID = "7933278211";
 
-// Secret Passcode
-const VALID_PASSCODE = "GEO2026"; 
-
 let studentData = { name: "", phone: "" };
+let activeVaultPasscode = "";
+let selectedVaultName = "";
 let startTime, endTime;
 
 const questions = [
@@ -114,10 +113,14 @@ let timeInSeconds = EXAM_DURATION_MINUTES * 60;
 let timerInterval;
 
 // DOM Elements
-const lobbyContainer = document.getElementById('lobby-container');
-const examContainer = document.getElementById('exam-container');
-const loginError = document.getElementById('login-error');
+const studentInfoCard = document.getElementById('student-info-card');
+const vaultSelectionCard = document.getElementById('vault-selection-card');
+const passcodeModal = document.getElementById('passcode-modal');
+const passcodeError = document.getElementById('passcode-error');
+const passcodeVaultTitle = document.getElementById('passcode-vault-title');
+const vaultPasscodeInput = document.getElementById('vault-passcode-input');
 
+const examContainer = document.getElementById('exam-container');
 const questionNumberText = document.getElementById('question-number');
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
@@ -135,25 +138,45 @@ const scorePercentage = document.getElementById('score-percentage');
 const scoreDetails = document.getElementById('score-details');
 const telegramStatus = document.getElementById('telegram-status');
 
-// Login & Passcode Validation
-function startExam(e) {
+// Step 1: Proceed to Vault Selection
+function goToVaultSelection(e) {
     e.preventDefault();
-    const name = document.getElementById('student-name').value;
-    const phone = document.getElementById('student-phone').value;
-    const passcode = document.getElementById('exam-passcode').value;
+    studentData.name = document.getElementById('student-name').value;
+    studentData.phone = document.getElementById('student-phone').value;
 
-    if (passcode !== VALID_PASSCODE) {
-        loginError.style.display = 'block';
+    studentInfoCard.style.display = 'none';
+    vaultSelectionCard.style.display = 'block';
+}
+
+// Step 2: Open Passcode Modal when a Vault is clicked
+function openPasscodeModal(vaultName, passcode) {
+    selectedVaultName = vaultName;
+    activeVaultPasscode = passcode;
+    passcodeVaultTitle.textContent = `${vaultName}`;
+    passcodeError.style.display = 'none';
+    vaultPasscodeInput.value = '';
+    passcodeModal.classList.add('active');
+}
+
+function closePasscodeModal() {
+    passcodeModal.classList.remove('active');
+}
+
+// Step 3: Verify Passcode and Start Exam
+function verifyPasscodeAndStart(e) {
+    e.preventDefault();
+    const enteredCode = vaultPasscodeInput.value;
+
+    if (enteredCode !== activeVaultPasscode) {
+        passcodeError.style.display = 'block';
         return;
     }
 
-    studentData.name = name;
-    studentData.phone = phone;
-    startTime = new Date();
-
-    lobbyContainer.style.display = 'none';
+    closePasscodeModal();
+    vaultSelectionCard.style.display = 'none';
     examContainer.style.display = 'flex';
-
+    
+    startTime = new Date();
     initQuiz();
 }
 
@@ -264,13 +287,13 @@ function submitExam() {
     resultModal.classList.add('active');
 
     // Send Result to Telegram Bot
-    sendResultToTelegram(studentData.name, studentData.phone, score, totalQuestions, percentage, timeString);
+    sendResultToTelegram(studentData.name, studentData.phone, selectedVaultName, score, totalQuestions, percentage, timeString);
 }
 
-function sendResultToTelegram(name, phone, score, total, percent, timeSpent) {
+function sendResultToTelegram(name, phone, vault, score, total, percent, timeSpent) {
     telegramStatus.textContent = "Sending result to instructor...";
     
-    const message = `🎯 *NEW EXAM SUBMISSION*%0A%0A👤 *Name:* ${name}%0A📞 *Phone:* ${phone}%0A📚 *Subject:* Geography Assessment%0A📊 *Score:* ${score}/${total} (${percent}%)%0A⏱️ *Time Spent:* ${timeSpent}`;
+    const message = `🎯 *NEW EXAM SUBMISSION*%0A%0A👤 *Name:* ${name}%0A📞 *Phone:* ${phone}%0A📚 *Vault:* ${vault}%0A📊 *Score:* ${score}/${total} (${percent}%)%0A⏱️ *Time Spent:* ${timeSpent}`;
 
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${message}&parse_mode=Markdown`;
 
@@ -309,6 +332,7 @@ submitBtn.addEventListener('click', () => {
         submitExam();
     }
 });
+
 
 
 
