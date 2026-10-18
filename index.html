@@ -29,7 +29,25 @@
     <!-- Main Container -->
     <div class="main-container">
 
-        <!-- Question Panel (Left) -->
+        <!-- Question Navigator Bar (በስልክም ሆነ በኮምፒውተር ከላይ ወደ ጎን የሚሸራተት) -->
+        <aside class="sidebar-card horizontal-nav">
+            <div class="sidebar-header">
+                <h3>Question Navigator</h3>
+                <span class="counter-badge" id="nav-status">0 of 5 Answered</span>
+            </div>
+            
+            <div class="question-grid" id="question-grid">
+                <!-- Grid Items will be dynamically generated -->
+            </div>
+
+            <div class="grid-legend">
+                <div class="legend-item"><span class="dot answered"></span> Answered</div>
+                <div class="legend-item"><span class="dot current"></span> Current</div>
+                <div class="legend-item"><span class="dot unvisited"></span> Remaining</div>
+            </div>
+        </aside>
+
+        <!-- Question Panel -->
         <main class="question-card">
             <div class="card-header">
                 <div class="exam-tag">CHAPTER ONE • MCQ EXAM</div>
@@ -65,33 +83,11 @@
                 <button id="next-btn" class="btn btn-primary">
                     Next Question →
                 </button>
-            </div>
-        </main>
-
-        <!-- Sidebar / Question Navigator (Right) -->
-        <aside class="sidebar-card">
-            <div class="sidebar-header">
-                <h3>Question Navigator</h3>
-                <span class="counter-badge" id="nav-status">0 of 5 Answered</span>
-            </div>
-            
-            <div class="question-grid" id="question-grid">
-                <!-- Grid Items -->
-            </div>
-
-            <div class="grid-legend">
-                <div class="legend-item"><span class="dot answered"></span> Answered</div>
-                <div class="legend-item"><span class="dot current"></span> Current</div>
-                <div class="legend-item"><span class="dot unvisited"></span> Remaining</div>
-            </div>
-
-            <div class="sidebar-action">
                 <button id="submit-btn" class="btn btn-danger">
                     Submit Exam
                 </button>
-                <p class="helper-text">Double check all questions before submitting.</p>
             </div>
-        </aside>
+        </main>
 
     </div>
 
@@ -120,4 +116,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
