@@ -7,6 +7,15 @@ let activeVaultPasscode = "";
 let selectedVaultName = "";
 let startTime, endTime;
 
+// የፈተናዎች የጊዜ ሰሌዳ (ለሙከራ ሰዓቱን እንደፍላጎትህ ማስተካከል ትችላለህ)
+const vaultSchedules = {
+    "GEO2026": {
+        vaultName: "Geography of Ethiopia and the Horn",
+        startTime: "2026-10-19T21:00:00", // ምሽት 3:00 (21:00)
+        endTime:   "2026-10-19T22:00:00"  // ምሽት 4:00 (22:00)
+    }
+};
+
 const questions = [
     {
         id: 1,
@@ -149,7 +158,7 @@ function goToVaultSelection(e) {
     let nameInput = document.getElementById('student-name').value.trim();
     let phoneInput = document.getElementById('student-phone').value.trim();
 
-    // 1. መሣሪያው/ስልኩ ቀድሞ ጥቅም ላይ መዋሉን መፈተሽ (Device Check)
+    // 1. መሣሪያው/ስልኩ ቀድሞ ጥቅም ላይ መዋሉን መፈተሽ
     let registeredDeviceUser = localStorage.getItem('active_exam_user');
     if (registeredDeviceUser) {
         let savedData = JSON.parse(registeredDeviceUser);
@@ -171,7 +180,6 @@ function goToVaultSelection(e) {
     studentData.name = nameInput;
     studentData.phone = phoneInput;
 
-    // ስልኩ ላይ መረጃውን መመዝገብ
     localStorage.setItem('active_exam_user', JSON.stringify(studentData));
 
     studentInfoCard.style.display = 'none';
@@ -192,14 +200,35 @@ function closePasscodeModal() {
     passcodeModal.classList.remove('active');
 }
 
-// Step 3: Verify Passcode and Start Exam
+// Step 3: Verify Passcode and Check Exam Schedule
 function verifyPasscodeAndStart(e) {
     e.preventDefault();
-    const enteredCode = vaultPasscodeInput.value;
+    const enteredCode = vaultPasscodeInput.value.trim();
 
     if (enteredCode !== activeVaultPasscode) {
+        passcodeError.textContent = "❌ Incorrect Passcode! Please try again.";
         passcodeError.style.display = 'block';
         return;
+    }
+
+    // የሰዓት ቁጥጥር (Time Gate Check)
+    const schedule = vaultSchedules[enteredCode];
+    if (schedule) {
+        const now = new Date();
+        const startTimeObj = new Date(schedule.startTime);
+        const endTimeObj = new Date(schedule.endTime);
+
+        if (now < startTimeObj) {
+            passcodeError.textContent = `⏳ ፈተናው ገና አልተጀመረም! ፈተናው የሚጀምረው በ ${startTimeObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ነው።`;
+            passcodeError.style.display = 'block';
+            return;
+        }
+
+        if (now > endTimeObj) {
+            passcodeError.textContent = "🔒 የፈተናው ሰዓት አልፏል! ፈተናው ተዘግቷል።";
+            passcodeError.style.display = 'block';
+            return;
+        }
     }
 
     closePasscodeModal();
@@ -301,7 +330,6 @@ function submitExam() {
     clearInterval(timerInterval);
     endTime = new Date();
     
-    // ተማሪው ፈተናውን እንደጨረሰ መመዝገብ (ድጋሚ እንዳይፈተን)
     localStorage.setItem(`completed_${studentData.phone}`, 'true');
 
     let score = 0;
@@ -338,10 +366,8 @@ function submitExam() {
     scorePercentage.textContent = `${percentage}%`;
     scoreDetails.textContent = `You scored ${score} out of ${totalQuestions}`;
 
-    // Leaderboard ማሳየት
     saveAndDisplayLeaderboard(studentData.name, score, totalQuestions);
 
-    // Review ማሳየት
     if (score === totalQuestions) {
         reviewContainer.innerHTML = `<p class="all-correct-msg">🎉 Excellent! You answered all questions correctly!</p>`;
     } else {
@@ -353,7 +379,6 @@ function submitExam() {
 
     resultModal.classList.add('active');
 
-    // Send Result to Telegram Bot
     sendResultToTelegram(studentData.name, studentData.phone, selectedVaultName, score, totalQuestions, percentage, timeString);
 }
 
@@ -424,6 +449,7 @@ submitBtn.addEventListener('click', () => {
         submitExam();
     }
 });
+
 
 
 
