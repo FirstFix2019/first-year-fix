@@ -7,7 +7,7 @@ let activeVaultPasscode = "";
 let selectedVaultName = "";
 let startTime, endTime;
 
-// የፈተናዎች የጊዜ ሰሌዳ (ለሙከራ ሰዓቱን እንደፍላጎትህ ማስተካከል ትችላለህ)
+// የፈተናዎች የጊዜ ሰሌዳ
 const vaultSchedules = {
     "GEO2026": {
         vaultName: "Geography of Ethiopia and the Horn",
@@ -128,7 +128,6 @@ const passcodeModal = document.getElementById('passcode-modal');
 const passcodeError = document.getElementById('passcode-error');
 const passcodeVaultTitle = document.getElementById('passcode-vault-title');
 const vaultPasscodeInput = document.getElementById('vault-passcode-input');
-const loginBlockError = document.getElementById('login-block-error');
 
 const examContainer = document.getElementById('exam-container');
 const questionNumberText = document.getElementById('question-number');
@@ -150,37 +149,12 @@ const telegramStatus = document.getElementById('telegram-status');
 const reviewContainer = document.getElementById('review-container');
 const leaderboardList = document.getElementById('leaderboard-list');
 
-// Step 1: Proceed to Vault Selection with One-Session Check
+// Step 1: Proceed to Vault Selection (ማንኛውም ሰው መግባት ይችላል)
 function goToVaultSelection(e) {
     e.preventDefault();
-    loginBlockError.style.display = 'none';
 
-    let nameInput = document.getElementById('student-name').value.trim();
-    let phoneInput = document.getElementById('student-phone').value.trim();
-
-    // 1. መሣሪያው/ስልኩ ቀድሞ ጥቅም ላይ መዋሉን መፈተሽ
-    let registeredDeviceUser = localStorage.getItem('active_exam_user');
-    if (registeredDeviceUser) {
-        let savedData = JSON.parse(registeredDeviceUser);
-        if (savedData.phone !== phoneInput) {
-            loginBlockError.textContent = `❌ ከዚህ ስልክ ቀደም ሲል በ "${savedData.name}" ስም ተመዝግቧል። በአንድ ስልክ አንድ ሰው ብቻ ነው መፈተን የሚችለው!`;
-            loginBlockError.style.display = 'block';
-            return;
-        }
-    }
-
-    // 2. ተማሪው ቀደም ሲል ፈተናውን ወስዶ ከጨረሰ መከልከል
-    let examCompleted = localStorage.getItem(`completed_${phoneInput}`);
-    if (examCompleted) {
-        loginBlockError.textContent = "❌ ይህን ፈተና ቀደም ሲል ወስደው ጨርሰዋል! ድጋሚ መፈተን አይችሉም።";
-        loginBlockError.style.display = 'block';
-        return;
-    }
-
-    studentData.name = nameInput;
-    studentData.phone = phoneInput;
-
-    localStorage.setItem('active_exam_user', JSON.stringify(studentData));
+    studentData.name = document.getElementById('student-name').value.trim();
+    studentData.phone = document.getElementById('student-phone').value.trim();
 
     studentInfoCard.style.display = 'none';
     vaultSelectionCard.style.display = 'block';
@@ -200,18 +174,38 @@ function closePasscodeModal() {
     passcodeModal.classList.remove('active');
 }
 
-// Step 3: Verify Passcode and Check Exam Schedule
+// Step 3: Verify Passcode, Device Check, Schedule & Start Exam
 function verifyPasscodeAndStart(e) {
     e.preventDefault();
     const enteredCode = vaultPasscodeInput.value.trim();
 
+    // 1. የኮድ ትክክለኛነት መፈተሽ
     if (enteredCode !== activeVaultPasscode) {
         passcodeError.textContent = "❌ Incorrect Passcode! Please try again.";
         passcodeError.style.display = 'block';
         return;
     }
 
-    // የሰዓት ቁጥጥር (Time Gate Check)
+    // 2. በዚህ ስልክ/መሳሪያ ቀደም ሲል ሌላ ሰው ከተፈተነ መከልከል (Device Check)
+    let registeredDeviceUser = localStorage.getItem(`active_exam_user_${selectedVaultName}`);
+    if (registeredDeviceUser) {
+        let savedData = JSON.parse(registeredDeviceUser);
+        if (savedData.phone !== studentData.phone) {
+            passcodeError.textContent = `❌ ከዚህ ስልክ ቀደም ሲል በ "${savedData.name}" ስም ተፈትነዋል። በአንድ ስልክ/መሳሪያ አንድ ሰው ብቻ ነው መፈተን የሚችለው!`;
+            passcodeError.style.display = 'block';
+            return;
+        }
+    }
+
+    // 3. ይህ ተማሪ ቀደም ሲል ይህንን ፈተና ወስዶ ከጨረሰ መከልከል
+    let examCompleted = localStorage.getItem(`completed_${selectedVaultName}_${studentData.phone}`);
+    if (examCompleted) {
+        passcodeError.textContent = "❌ ይህን ፈተና ቀደም ሲል ወስደው ጨርሰዋል! ድጋሚ መፈተን አይችሉም።";
+        passcodeError.style.display = 'block';
+        return;
+    }
+
+    // 4. የፈተና የሰዓት ገደብ (Time Gate Check)
     const schedule = vaultSchedules[enteredCode];
     if (schedule) {
         const now = new Date();
@@ -230,6 +224,9 @@ function verifyPasscodeAndStart(e) {
             return;
         }
     }
+
+    // ሁሉም መስፈርት ሲሟላ የስልኩን/ተማሪውን መረጃ መመዝገብ
+    localStorage.setItem(`active_exam_user_${selectedVaultName}`, JSON.stringify(studentData));
 
     closePasscodeModal();
     vaultSelectionCard.style.display = 'none';
@@ -330,7 +327,8 @@ function submitExam() {
     clearInterval(timerInterval);
     endTime = new Date();
     
-    localStorage.setItem(`completed_${studentData.phone}`, 'true');
+    // ተማሪው ፈተናውን እንደጨረሰ መዝግቦ መቆለፍ
+    localStorage.setItem(`completed_${selectedVaultName}_${studentData.phone}`, 'true');
 
     let score = 0;
     let reviewHTML = "";
@@ -449,6 +447,7 @@ submitBtn.addEventListener('click', () => {
         submitExam();
     }
 });
+
 
 
 
