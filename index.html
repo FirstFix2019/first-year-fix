@@ -41,6 +41,7 @@
                 <label for="student-phone">Phone Number (ስልክ ቁጥር)</label>
                 <input type="tel" id="student-phone" placeholder="0912345678" required>
             </div>
+            <p id="login-block-error" class="error-msg" style="display:none;"></p>
             <button type="submit" class="btn btn-primary btn-block">Continue to Assessment Vaults →</button>
         </form>
     </div>
@@ -146,7 +147,7 @@
 
     </div>
 
-    <!-- Result Modal (ከደረጃ/Leaderboard ጋር) -->
+    <!-- Result Modal -->
     <div class="modal-overlay" id="result-modal">
         <div class="modal-card">
             <div class="modal-header">
@@ -162,12 +163,10 @@
             </div>
             <p id="score-details" class="score-text">You scored 0 out of 15</p>
 
-            <!-- Leaderboard Section (የደረጃ ሰንጠረዥ) -->
+            <!-- Leaderboard Section -->
             <div class="leaderboard-section">
-                <div class="leaderboard-title">🏆 Top Performers Leaderboard (የከፍተኛ ውጤት ደረጃ)</div>
-                <div class="leaderboard-list" id="leaderboard-list">
-                    <!-- JavaScript በደረጃ ይሞላዋል -->
-                </div>
+                <div class="leaderboard-title">🏆 Top Performers Leaderboard</div>
+                <div class="leaderboard-list" id="leaderboard-list"></div>
             </div>
 
             <!-- Correct/Wrong Answer Review Section -->
@@ -184,6 +183,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
