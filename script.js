@@ -7,15 +7,6 @@ let activeVaultPasscode = "";
 let selectedVaultName = "";
 let startTime, endTime;
 
-// የፈተናዎች የጊዜ ሰሌዳ
-const vaultSchedules = {
-    "GEO2026": {
-        vaultName: "Geography of Ethiopia and the Horn",
-        startTime: "2026-10-19T21:00:00", // ምሽት 3:00 (21:00)
-        endTime:   "2026-10-19T22:00:00"  // ምሽት 4:00 (22:00)
-    }
-};
-
 const questions = [
     {
         id: 1,
@@ -91,7 +82,7 @@ const questions = [
     {
         id: 12,
         question: "Countries that are divided/separated from their other parts by either water or land have a:",
-        options: ["Perforated shape", "Protruded shape", "Elongated shape", "None of the above"],
+        options: ["Perforated shape", "Protruded shape", "Elongated shape", "Fragmented shape (None of the above)"],
         answer: 3
     },
     {
@@ -149,10 +140,9 @@ const telegramStatus = document.getElementById('telegram-status');
 const reviewContainer = document.getElementById('review-container');
 const leaderboardList = document.getElementById('leaderboard-list');
 
-// Step 1: Proceed to Vault Selection (ማንኛውም ሰው መግባት ይችላል)
+// Step 1: Proceed to Vault Selection
 function goToVaultSelection(e) {
     e.preventDefault();
-
     studentData.name = document.getElementById('student-name').value.trim();
     studentData.phone = document.getElementById('student-phone').value.trim();
 
@@ -174,7 +164,7 @@ function closePasscodeModal() {
     passcodeModal.classList.remove('active');
 }
 
-// Step 3: Verify Passcode, Device Check, Schedule & Start Exam
+// Step 3: Verify Passcode and Start Exam (ለሙከራ ሰዓት ማጣሪያው ተወግዷል)
 function verifyPasscodeAndStart(e) {
     e.preventDefault();
     const enteredCode = vaultPasscodeInput.value.trim();
@@ -205,27 +195,7 @@ function verifyPasscodeAndStart(e) {
         return;
     }
 
-    // 4. የፈተና የሰዓት ገደብ (Time Gate Check)
-    const schedule = vaultSchedules[enteredCode];
-    if (schedule) {
-        const now = new Date();
-        const startTimeObj = new Date(schedule.startTime);
-        const endTimeObj = new Date(schedule.endTime);
-
-        if (now < startTimeObj) {
-            passcodeError.textContent = `⏳ ፈተናው ገና አልተጀመረም! ፈተናው የሚጀምረው በ ${startTimeObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ነው።`;
-            passcodeError.style.display = 'block';
-            return;
-        }
-
-        if (now > endTimeObj) {
-            passcodeError.textContent = "🔒 የፈተናው ሰዓት አልፏል! ፈተናው ተዘግቷል።";
-            passcodeError.style.display = 'block';
-            return;
-        }
-    }
-
-    // ሁሉም መስፈርት ሲሟላ የስልኩን/ተማሪውን መረጃ መመዝገብ
+    // የስልኩን/ተማሪውን መረጃ መመዝገብ
     localStorage.setItem(`active_exam_user_${selectedVaultName}`, JSON.stringify(studentData));
 
     closePasscodeModal();
@@ -327,7 +297,6 @@ function submitExam() {
     clearInterval(timerInterval);
     endTime = new Date();
     
-    // ተማሪው ፈተናውን እንደጨረሰ መዝግቦ መቆለፍ
     localStorage.setItem(`completed_${selectedVaultName}_${studentData.phone}`, 'true');
 
     let score = 0;
@@ -447,6 +416,7 @@ submitBtn.addEventListener('click', () => {
         submitExam();
     }
 });
+
 
 
 
