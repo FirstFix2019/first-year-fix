@@ -119,6 +119,7 @@ const passcodeModal = document.getElementById('passcode-modal');
 const passcodeError = document.getElementById('passcode-error');
 const passcodeVaultTitle = document.getElementById('passcode-vault-title');
 const vaultPasscodeInput = document.getElementById('vault-passcode-input');
+const loginBlockError = document.getElementById('login-block-error');
 
 const examContainer = document.getElementById('exam-container');
 const questionNumberText = document.getElementById('question-number');
@@ -140,11 +141,38 @@ const telegramStatus = document.getElementById('telegram-status');
 const reviewContainer = document.getElementById('review-container');
 const leaderboardList = document.getElementById('leaderboard-list');
 
-// Step 1: Proceed to Vault Selection
+// Step 1: Proceed to Vault Selection with One-Session Check
 function goToVaultSelection(e) {
     e.preventDefault();
-    studentData.name = document.getElementById('student-name').value;
-    studentData.phone = document.getElementById('student-phone').value;
+    loginBlockError.style.display = 'none';
+
+    let nameInput = document.getElementById('student-name').value.trim();
+    let phoneInput = document.getElementById('student-phone').value.trim();
+
+    // 1. መሣሪያው/ስልኩ ቀድሞ ጥቅም ላይ መዋሉን መፈተሽ (Device Check)
+    let registeredDeviceUser = localStorage.getItem('active_exam_user');
+    if (registeredDeviceUser) {
+        let savedData = JSON.parse(registeredDeviceUser);
+        if (savedData.phone !== phoneInput) {
+            loginBlockError.textContent = `❌ ከዚህ ስልክ ቀደም ሲል በ "${savedData.name}" ስም ተመዝግቧል። በአንድ ስልክ አንድ ሰው ብቻ ነው መፈተን የሚችለው!`;
+            loginBlockError.style.display = 'block';
+            return;
+        }
+    }
+
+    // 2. ተማሪው ቀደም ሲል ፈተናውን ወስዶ ከጨረሰ መከልከል
+    let examCompleted = localStorage.getItem(`completed_${phoneInput}`);
+    if (examCompleted) {
+        loginBlockError.textContent = "❌ ይህን ፈተና ቀደም ሲል ወስደው ጨርሰዋል! ድጋሚ መፈተን አይችሉም።";
+        loginBlockError.style.display = 'block';
+        return;
+    }
+
+    studentData.name = nameInput;
+    studentData.phone = phoneInput;
+
+    // ስልኩ ላይ መረጃውን መመዝገብ
+    localStorage.setItem('active_exam_user', JSON.stringify(studentData));
 
     studentInfoCard.style.display = 'none';
     vaultSelectionCard.style.display = 'block';
@@ -273,6 +301,9 @@ function submitExam() {
     clearInterval(timerInterval);
     endTime = new Date();
     
+    // ተማሪው ፈተናውን እንደጨረሰ መመዝገብ (ድጋሚ እንዳይፈተን)
+    localStorage.setItem(`completed_${studentData.phone}`, 'true');
+
     let score = 0;
     let reviewHTML = "";
 
@@ -307,10 +338,10 @@ function submitExam() {
     scorePercentage.textContent = `${percentage}%`;
     scoreDetails.textContent = `You scored ${score} out of ${totalQuestions}`;
 
-    // 1. Leaderboard ማዘጋጀትና ማስቀመጥ (Local Storage)
+    // Leaderboard ማሳየት
     saveAndDisplayLeaderboard(studentData.name, score, totalQuestions);
 
-    // 2. Review Section ማሳየት
+    // Review ማሳየት
     if (score === totalQuestions) {
         reviewContainer.innerHTML = `<p class="all-correct-msg">🎉 Excellent! You answered all questions correctly!</p>`;
     } else {
@@ -326,22 +357,15 @@ function submitExam() {
     sendResultToTelegram(studentData.name, studentData.phone, selectedVaultName, score, totalQuestions, percentage, timeString);
 }
 
-// Leaderboard Functionality (ደረጃዎችን መዝግቦ መደርደሪያ)
 function saveAndDisplayLeaderboard(name, score, total) {
     let boardKey = `leaderboard_${selectedVaultName}`;
     let leaderboard = JSON.parse(localStorage.getItem(boardKey)) || [];
 
-    // አዲሱን ውጤት መጨመር
     leaderboard.push({ name: name, score: score, total: total, date: new Date().toLocaleDateString() });
-
-    // በውጤት መጠን መደርደር (ከፍተኛ ውጤት ያመጡት ከላይ እንዲሆኑ)
     leaderboard.sort((a, b) => b.score - a.score);
-
-    // Top 5 መምረጥ
     leaderboard = leaderboard.slice(0, 5);
     localStorage.setItem(boardKey, JSON.stringify(leaderboard));
 
-    // በUI ላይ ማሳየት
     leaderboardList.innerHTML = "";
     leaderboard.forEach((item, index) => {
         let rankClass = index === 0 ? "top-1" : index === 1 ? "top-2" : index === 2 ? "top-3" : "";
@@ -400,6 +424,7 @@ submitBtn.addEventListener('click', () => {
         submitExam();
     }
 });
+
 
 
 
