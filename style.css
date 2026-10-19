@@ -79,6 +79,18 @@ body {
 .form-group input { padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border-color); font-size: 13px; outline: none; }
 .form-group input:focus { border-color: var(--primary); }
 
+.error-msg {
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 10px;
+    background: #fef2f2;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+}
+
 .vault-list { display: flex; flex-direction: column; gap: 10px; }
 .vault-item {
     display: flex; align-items: center; padding: 12px 14px;
@@ -169,85 +181,38 @@ body {
 .btn-danger { background-color: var(--danger); color: #fff; }
 .btn-block { width: 100%; text-align: center; }
 
-/* Modal, Review & Leaderboard Section */
+/* Modal & Leaderboard */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; }
 .modal-overlay.active { opacity: 1; pointer-events: all; }
 .modal-card { background: #fff; padding: 20px 16px; border-radius: 20px; text-align: center; max-width: 400px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; overflow-y: auto; }
 
-.score-ring { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #fbbf24); display: flex; align-items: center; justify-content: center; margin: 8px auto; font-size: 20px; font-weight: 800; flex-shrink: 0; }
-.score-text { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.score-ring { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #fbbf24); display: flex; align-items: center; justify-content: center; margin: 10px auto; font-size: 22px; font-weight: 800; flex-shrink: 0; }
+.score-text { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
 
-/* Leaderboard Styling (የደረጃ ዲዛይን) */
-.leaderboard-section {
-    background: #f8fafc;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 10px;
-    margin-bottom: 10px;
-    text-align: left;
-}
-
-.leaderboard-title {
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--text-dark);
-    margin-bottom: 8px;
-    text-align: center;
-}
-
-.leaderboard-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.leader-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fff;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    border: 1px solid #e2e8f0;
-}
-
-.leader-rank {
-    font-weight: 800;
-    width: 22px;
-}
-
+.leaderboard-section { background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px; margin-bottom: 10px; text-align: left; }
+.leaderboard-title { font-size: 11px; font-weight: 800; color: var(--text-dark); margin-bottom: 8px; text-align: center; }
+.leaderboard-list { display: flex; flex-direction: column; gap: 6px; }
+.leader-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; border: 1px solid #e2e8f0; }
+.leader-rank { font-weight: 800; width: 22px; }
 .leader-rank.top-1 { color: #d97706; }
 .leader-rank.top-2 { color: #64748b; }
 .leader-rank.top-3 { color: #b45309; }
-
-.leader-name {
-    flex: 1;
-    font-weight: 700;
-    color: var(--text-dark);
-}
-
-.leader-score {
-    font-weight: 800;
-    color: var(--accent-green);
-}
+.leader-name { flex: 1; font-weight: 700; color: var(--text-dark); }
+.leader-score { font-weight: 800; color: var(--accent-green); }
 
 /* Review Section */
-#review-container {
-    margin-top: 6px; text-align: left; max-height: 160px; overflow-y: auto;
-    padding-right: 4px; border-top: 1px solid var(--border-color); padding-top: 8px;
-}
+#review-container { margin-top: 8px; text-align: left; max-height: 160px; overflow-y: auto; padding-right: 4px; border-top: 1px solid var(--border-color); padding-top: 10px; }
 #review-container::-webkit-scrollbar { width: 4px; }
 #review-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
 .review-header { font-size: 10px; font-weight: 800; color: #dc2626; margin-bottom: 6px; text-transform: uppercase; }
 .review-item { background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 6px 8px; margin-bottom: 6px; }
-.review-q-num { font-size: 10px; font-weight: 700; color: var(--text-dark); margin-bottom: 3px; line-height: 1.3; }
+.review-q-num { font-size: 10px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; line-height: 1.3; }
 .review-answers p { font-size: 10px; font-weight: 600; margin-top: 2px; }
 .user-wrong { color: #dc2626; }
 .user-wrong span { text-decoration: line-through; }
 .correct-ans { color: #16a34a; }
-.all-correct-msg { text-align: center; color: #16a34a; font-weight: 700; font-size: 11px; }
+.all-correct-msg { text-align: center; color: #16a34a; font-weight: 700; font-size: 12px; }
+
 
 
 
