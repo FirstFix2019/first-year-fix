@@ -82,7 +82,7 @@ const questions = [
     {
         id: 12,
         question: "Countries that are divided/separated from their other parts by either water or land have a:",
-        options: ["Perforated shape", "Protruded shape", "Elongated shape", "None of the above"],
+        options: ["Perforated shape", "Protruded shape", "Elongated shape", "Fragmented shape (None of the above)"],
         answer: 3
     },
     {
@@ -138,6 +138,7 @@ const scorePercentage = document.getElementById('score-percentage');
 const scoreDetails = document.getElementById('score-details');
 const telegramStatus = document.getElementById('telegram-status');
 const reviewContainer = document.getElementById('review-container');
+const leaderboardList = document.getElementById('leaderboard-list');
 
 // Step 1: Proceed to Vault Selection
 function goToVaultSelection(e) {
@@ -149,7 +150,7 @@ function goToVaultSelection(e) {
     vaultSelectionCard.style.display = 'block';
 }
 
-// Step 2: Open Passcode Modal when a Vault is clicked
+// Step 2: Open Passcode Modal
 function openPasscodeModal(vaultName, passcode) {
     selectedVaultName = vaultName;
     activeVaultPasscode = passcode;
@@ -306,6 +307,10 @@ function submitExam() {
     scorePercentage.textContent = `${percentage}%`;
     scoreDetails.textContent = `You scored ${score} out of ${totalQuestions}`;
 
+    // 1. Leaderboard ማዘጋጀትና ማስቀመጥ (Local Storage)
+    saveAndDisplayLeaderboard(studentData.name, score, totalQuestions);
+
+    // 2. Review Section ማሳየት
     if (score === totalQuestions) {
         reviewContainer.innerHTML = `<p class="all-correct-msg">🎉 Excellent! You answered all questions correctly!</p>`;
     } else {
@@ -319,6 +324,38 @@ function submitExam() {
 
     // Send Result to Telegram Bot
     sendResultToTelegram(studentData.name, studentData.phone, selectedVaultName, score, totalQuestions, percentage, timeString);
+}
+
+// Leaderboard Functionality (ደረጃዎችን መዝግቦ መደርደሪያ)
+function saveAndDisplayLeaderboard(name, score, total) {
+    let boardKey = `leaderboard_${selectedVaultName}`;
+    let leaderboard = JSON.parse(localStorage.getItem(boardKey)) || [];
+
+    // አዲሱን ውጤት መጨመር
+    leaderboard.push({ name: name, score: score, total: total, date: new Date().toLocaleDateString() });
+
+    // በውጤት መጠን መደርደር (ከፍተኛ ውጤት ያመጡት ከላይ እንዲሆኑ)
+    leaderboard.sort((a, b) => b.score - a.score);
+
+    // Top 5 መምረጥ
+    leaderboard = leaderboard.slice(0, 5);
+    localStorage.setItem(boardKey, JSON.stringify(leaderboard));
+
+    // በUI ላይ ማሳየት
+    leaderboardList.innerHTML = "";
+    leaderboard.forEach((item, index) => {
+        let rankClass = index === 0 ? "top-1" : index === 1 ? "top-2" : index === 2 ? "top-3" : "";
+        let medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`;
+
+        let div = document.createElement('div');
+        div.className = "leader-item";
+        div.innerHTML = `
+            <span class="leader-rank ${rankClass}">${medal}</span>
+            <span class="leader-name">${item.name}</span>
+            <span class="leader-score">${item.score}/${item.total}</span>
+        `;
+        leaderboardList.appendChild(div);
+    });
 }
 
 function sendResultToTelegram(name, phone, vault, score, total, percent, timeSpent) {
@@ -363,6 +400,7 @@ submitBtn.addEventListener('click', () => {
         submitExam();
     }
 });
+
 
 
 
