@@ -82,7 +82,7 @@ const questions = [
     {
         id: 12,
         question: "Countries that are divided/separated from their other parts by either water or land have a:",
-        options: ["Perforated shape", "Protruded shape", "Elongated shape", " None of the above"],
+        options: ["Perforated shape", "Protruded shape", "Elongated shape", "Fragmented shape (None of the above)"],
         answer: 3
     },
     {
@@ -137,6 +137,7 @@ const resultModal = document.getElementById('result-modal');
 const scorePercentage = document.getElementById('score-percentage');
 const scoreDetails = document.getElementById('score-details');
 const telegramStatus = document.getElementById('telegram-status');
+const reviewContainer = document.getElementById('review-container');
 
 // Step 1: Proceed to Vault Selection
 function goToVaultSelection(e) {
@@ -174,7 +175,7 @@ function verifyPasscodeAndStart(e) {
 
     closePasscodeModal();
     vaultSelectionCard.style.display = 'none';
-    examContainer.style.display = 'flex';
+    examContainer.style.display = 'grid';
     
     startTime = new Date();
     initQuiz();
@@ -254,7 +255,7 @@ function createNavigatorGrid() {
 
 function updateNavigator() {
     let answeredCount = Object.keys(userAnswers).length;
-    navStatus.textContent = `${answeredCount} of ${totalQuestions} Answered`;
+    navStatus.textContent = `${answeredCount} of ${totalQuestions} answered`;
     updateNavigatorStyles();
 }
 
@@ -272,8 +273,28 @@ function submitExam() {
     endTime = new Date();
     
     let score = 0;
+    let reviewHTML = "";
+
     questions.forEach((q, index) => {
-        if (userAnswers[index] === q.answer) score++;
+        let userAnswerIndex = userAnswers[index];
+        let isCorrect = userAnswerIndex === q.answer;
+        
+        if (isCorrect) {
+            score++;
+        } else {
+            let userAnsText = userAnswerIndex !== undefined ? q.options[userAnswerIndex] : "Not Answered";
+            let correctAnsText = q.options[q.answer];
+
+            reviewHTML += `
+                <div class="review-item">
+                    <p class="review-q-num">Q${index + 1}: ${q.question}</p>
+                    <div class="review-answers">
+                        <p class="user-wrong">❌ Your Answer: <span>${userAnsText}</span></p>
+                        <p class="correct-ans">✔ Correct Answer: <span>${correctAnsText}</span></p>
+                    </div>
+                </div>
+            `;
+        }
     });
 
     let percentage = Math.round((score / totalQuestions) * 100);
@@ -284,6 +305,16 @@ function submitExam() {
 
     scorePercentage.textContent = `${percentage}%`;
     scoreDetails.textContent = `You scored ${score} out of ${totalQuestions}`;
+
+    if (score === totalQuestions) {
+        reviewContainer.innerHTML = `<p class="all-correct-msg">🎉 Excellent! You answered all questions correctly!</p>`;
+    } else {
+        reviewContainer.innerHTML = `
+            <div class="review-header">Incorrect Questions Review</div>
+            ${reviewHTML}
+        `;
+    }
+
     resultModal.classList.add('active');
 
     // Send Result to Telegram Bot
@@ -332,6 +363,7 @@ submitBtn.addEventListener('click', () => {
         submitExam();
     }
 });
+
 
 
 
