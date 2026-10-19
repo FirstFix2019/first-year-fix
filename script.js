@@ -82,7 +82,7 @@ const questions = [
     {
         id: 12,
         question: "Countries that are divided/separated from their other parts by either water or land have a:",
-        options: ["Perforated shape", "Protruded shape", "Elongated shape", "Fragmented shape (None of the above)"],
+        options: ["Perforated shape", "Protruded shape", "Elongated shape", "None of the above"],
         answer: 3
     },
     {
