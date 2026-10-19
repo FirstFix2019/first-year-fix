@@ -93,7 +93,7 @@
         </div>
     </div>
 
-    <!-- STEP 4: Main Exam Container (Side-by-Side Grid Layout) -->
+    <!-- STEP 4: Main Exam Container -->
     <div class="main-container" id="exam-container" style="display: none;">
 
         <!-- Left: Question Panel -->
@@ -140,13 +140,13 @@
                 <div class="legend-item"><span class="dot current"></span> Current question</div>
             </div>
 
-            <button id="submit-btn" class="btn btn-danger btn-block" style="margin-top: 20px;">Submit Exam</button>
+            <button id="submit-btn" class="btn btn-danger btn-block" style="margin-top: 15px;">Submit Exam</button>
             <p class="submit-note">Check your answers before submitting.</p>
         </aside>
 
     </div>
 
-    <!-- Result Modal -->
+    <!-- Result Modal (ከደረጃ/Leaderboard ጋር) -->
     <div class="modal-overlay" id="result-modal">
         <div class="modal-card">
             <div class="modal-header">
@@ -154,6 +154,7 @@
                 <h2>Assessment Completed!</h2>
                 <p>Your result has been recorded and submitted.</p>
             </div>
+            
             <div class="score-display">
                 <div class="score-ring">
                     <span id="score-percentage">0%</span>
@@ -161,10 +162,18 @@
             </div>
             <p id="score-details" class="score-text">You scored 0 out of 15</p>
 
+            <!-- Leaderboard Section (የደረጃ ሰንጠረዥ) -->
+            <div class="leaderboard-section">
+                <div class="leaderboard-title">🏆 Top Performers Leaderboard (የከፍተኛ ውጤት ደረጃ)</div>
+                <div class="leaderboard-list" id="leaderboard-list">
+                    <!-- JavaScript በደረጃ ይሞላዋል -->
+                </div>
+            </div>
+
             <!-- Correct/Wrong Answer Review Section -->
             <div id="review-container"></div>
 
-            <p id="telegram-status" style="font-size: 12px; color: #10b981; font-weight: 600; margin-top: 15px; margin-bottom: 15px;"></p>
+            <p id="telegram-status" style="font-size: 11px; color: #10b981; font-weight: 600; margin-top: 10px; margin-bottom: 10px;"></p>
 
             <div class="modal-actions">
                 <button class="btn btn-primary btn-block" onclick="location.reload()">Done</button>
