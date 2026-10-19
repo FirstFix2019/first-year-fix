@@ -120,15 +120,18 @@ body {
     display: flex; align-items: center; padding: 16px;
     border: 1.5px solid var(--border-color); border-radius: var(--radius-md);
     cursor: pointer; background: #fff;
+    transition: all 0.2s ease;
 }
-.vault-item:not(.disabled):hover { border-color: var(--primary); }
+.vault-item:not(.disabled):hover { border-color: var(--primary); transform: translateY(-2px); }
+.vault-item.disabled { opacity: 0.6; cursor: not-allowed; background: #f8fafc; }
 .vault-icon { font-size: 28px; margin-right: 14px; }
 .vault-details { flex: 1; }
 .vault-details h3 { font-size: 14px; font-weight: 700; }
 .vault-details p { font-size: 12px; color: var(--text-muted); }
 .vault-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: var(--accent-green-bg); color: #065f46; }
+.vault-badge.locked { background: #f1f5f9; color: var(--text-muted); }
 
-/* Main Exam Layout (Grid Side-by-Side like photo) */
+/* Main Exam Layout (Side-by-Side Grid Layout) */
 .main-container {
     max-width: 1150px;
     margin: 24px auto;
@@ -248,18 +251,39 @@ body {
 .btn-danger { background-color: var(--danger); color: #fff; }
 .btn-block { width: 100%; text-align: center; }
 
-/* Modal */
+/* Modal & Review Section */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; }
 .modal-overlay.active { opacity: 1; pointer-events: all; }
-.modal-card { background: #fff; padding: 32px 24px; border-radius: 20px; text-align: center; max-width: 380px; width: 90%; }
-.score-ring { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #fbbf24); display: flex; align-items: center; justify-content: center; margin: 16px auto; font-size: 26px; font-weight: 800; }
+.modal-card { background: #fff; padding: 28px 20px; border-radius: 20px; text-align: center; max-width: 420px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; }
+.score-ring { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #fbbf24); display: flex; align-items: center; justify-content: center; margin: 12px auto; font-size: 24px; font-weight: 800; flex-shrink: 0; }
+.score-text { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
 
-/* Responsive adjustments for narrow mobile screens */
-@media (max-width: 768px) {
-    .main-container {
-        grid-template-columns: 1fr;
-    }
+#review-container {
+    margin-top: 10px;
+    text-align: left;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 5px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
 }
+
+#review-container::-webkit-scrollbar { width: 5px; }
+#review-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+.review-header { font-size: 12px; font-weight: 800; color: #dc2626; margin-bottom: 10px; text-transform: uppercase; }
+.review-item { background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 8px; }
+.review-q-num { font-size: 12px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; line-height: 1.4; }
+.review-answers p { font-size: 11px; font-weight: 600; margin-top: 3px; }
+.user-wrong { color: #dc2626; }
+.user-wrong span { text-decoration: line-through; }
+.correct-ans { color: #16a34a; }
+.all-correct-msg { text-align: center; color: #16a34a; font-weight: 700; font-size: 13px; }
+
+@media (max-width: 768px) {
+    .main-container { grid-template-columns: 1fr; }
+}
+
 
 
 
